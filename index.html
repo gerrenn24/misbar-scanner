@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Gate Scanner - MISBAR 2027 St. Gabriel</title>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <style>
+    :root,
+    [data-theme="dark"] {
+      --bg-page: #0b1120;
+      --bg-card: #131c31;
+      --bg-input: #090e1a;
+      --bg-subtle: #1e293b;
+      --bg-subtle-hover: #283548;
+      --border-color: #26334d;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --stat-total: #f8fafc;
+      --stat-in: #4ade80;
+      --stat-rem: #fbbf24;
+      --badge-bg: rgba(59, 130, 246, 0.14);
+      --badge-text: #60a5fa;
+      --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.45);
+    }
+
+    [data-theme="light"] {
+      --bg-page: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-input: #f8fafc;
+      --bg-subtle: #e2e8f0;
+      --bg-subtle-hover: #cbd5e1;
+      --border-color: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --stat-total: #0f172a;
+      --stat-in: #16a34a;
+      --stat-rem: #d97706;
+      --badge-bg: rgba(37, 99, 235, 0.1);
+      --badge-text: #2563eb;
+      --shadow-card: 0 4px 16px -2px rgba(15, 23, 42, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--border-color);
+    }
+
+    .header-title {
+      min-width: 0;
+    }
+
+    .header-title h1 {
+      font-size: 16.5px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-title p {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-icon-only {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.15s, transform 0.1s;
+    }
+
+    .btn-icon-only:hover {
+      background: var(--bg-subtle);
+    }
+
+    .btn-icon-only:active {
+      transform: scale(0.95);
+    }
+
+    .btn-settings {
+      height: 36px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0 11px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: background-color 0.15s;
+    }
+
+    .btn-settings:hover {
+      background: var(--bg-subtle);
+    }
+
+    /* Stats 3 Kolom */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px 8px;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.12s ease, border-color 0.2s ease, background-color 0.25s ease;
+    }
+
+    .stat-box:active {
+      transform: scale(0.97);
+    }
+
+    .stat-num {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-lbl {
+      font-size: 11.5px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-top: 5px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-card);
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .section-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    /* Camera Reader */
+    #reader {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #020617;
+      min-height: 250px;
+      border: 1px solid var(--border-color);
+    }
+
+    .camera-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .status-msg {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      margin-top: 10px;
+      line-height: 1.4;
+    }
+
+    /* Buttons & Inputs */
+    .btn {
+      border: none;
+      border-radius: 11px;
+      padding: 12px 16px;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background-color 0.15s, opacity 0.15s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+      width: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--bg-subtle-hover);
+    }
+
+    .btn-sm {
+      padding: 9px 12px;
+      font-size: 13px;
+    }
+
+    .manual-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 13px;
+      border-radius: 11px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 14.5px;
+      outline: none;
+      transition: border-color 0.2s, background-color 0.25s;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: auto;
+      padding-top: 14px;
+      padding-bottom: 6px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .footer-meta {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .version-badge {
+      display: inline-block;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      margin-bottom: 4px;
+    }
+
+    /* Modal Hasil Check-In */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.86);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .result-box {
+      width: 100%;
+      max-width: 420px;
+      border-radius: 18px;
+      padding: 22px;
+      text-align: center;
+      color: #ffffff;
+      box-shadow: 0 24px 40px rgba(0, 0, 0, 0.55);
+      animation: popIn 0.18s ease-out;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .result-success { background: #15803d; border: 2px solid #4ade80; }
+    .result-duplicate { background: #b45309; border: 2px solid #fbbf24; }
+    .result-invalid { background: #b91c1c; border: 2px solid #f87171; }
+
+    .result-title {
+      font-size: 21px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .result-subtitle {
+      font-size: 13.5px;
+      opacity: 0.95;
+      margin-bottom: 16px;
+    }
+
+    .detail-card {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 12px;
+      padding: 13px 14px;
+      text-align: left;
+      margin-bottom: 18px;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 5px 0;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      opacity: 0.82;
+      flex-shrink: 0;
+    }
+
+    .detail-val {
+      font-weight: 700;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .btn-next {
+      background: #ffffff;
+      color: #0f172a;
+      width: 100%;
+      font-size: 15.5px;
+      font-weight: 800;
+      padding: 14px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-brand">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+            <path d="M14 14h3v3h-3zM17 17h4v4h-4zM14 20h3"></path>
+          </svg>
+        </div>
+        <div class="header-title">
+          <h1>Gate Scanner MISBAR 2027</h1>
+          <p>Paroki St. Gabriel Bandung • 20 Feb 2027</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-theme-toggle" class="btn-icon-only" type="button" onclick="toggleTheme()" title="Ubah Tema" aria-label="Ubah Tema"></button>
+        <button id="btn-settings" class="btn-settings hidden" type="button" onclick="handleLogout()" title="Keluar / Ganti PIN">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Keluar
+        </button>
+      </div>
+    </header>
+
+    <!-- Layar Login PIN Panitia -->
+    <div id="login-section" class="card">
+      <div class="section-header">
+        <span class="section-label">Otentikasi Petugas Gate</span>
+        <span class="live-pill"><span class="live-dot"></span>Auto-Sync</span>
+      </div>
+      <label for="pin-input" class="field-label">PIN Panitia</label>
+      <input type="password" id="pin-input" placeholder="Masukkan PIN Panitia" inputmode="numeric" />
+      <button id="btn-login" class="btn btn-primary" style="margin-top: 12px;" onclick="handleLogin()">
+        Login
+      </button>
+      <p id="login-error" class="status-msg" style="color: #ef4444;"></p>
+    </div>
+
+    <!-- Layar Utama Scanner -->
+    <div id="scanner-section" class="hidden">
+      <!-- 3 Kotak Statistik (Ketuk untuk refresh) -->
+      <div class="stats-grid" onclick="refreshStats(true)" title="Ketuk untuk memperbarui statistik">
+        <div class="stat-box">
+          <div class="stat-num" id="stat-total" style="color: var(--stat-total);">0</div>
+          <div class="stat-lbl">Pendaftar</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-checked-in" style="color: var(--stat-in);">0</div>
+          <div class="stat-lbl">Sudah Masuk</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num" id="stat-remaining" style="color: var(--stat-rem);">0</div>
+          <div class="stat-lbl">Belum Masuk</div>
+        </div>
+      </div>
+
+      <!-- Kartu Kamera & Galeri -->
+      <div class="card">
+        <div class="section-header">
+          <span class="section-label">Pemindai QR Tiket</span>
+          <span id="refresh-hint" class="live-pill"><span class="live-dot"></span>Online</span>
+        </div>
+        <div id="reader"></div>
+        <div class="camera-controls">
+          <button class="btn btn-secondary btn-sm" id="btn-toggle-cam" onclick="toggleCamera()">
+            Nyalakan Kamera
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('qr-file').click()">
+            Pilih dari Galeri
+          </button>
+        </div>
+        <input type="file" id="qr-file" accept="image/*" class="hidden" onchange="handleFileScan(event)" />
+        <p id="cam-status" class="status-msg">Arahkan kamera ke QR Code tiket peserta</p>
+      </div>
+
+      <!-- Kartu Input Manual -->
+      <div class="card">
+        <div class="section-header">
+          <span class="section-label">Input Manual ID Tiket</span>
+        </div>
+        <div class="manual-group">
+          <input type="text" id="manual-id" placeholder="Contoh: MISBAR27-0001-K9P4" autocapitalize="characters" />
+          <button class="btn btn-primary" style="width: auto; white-space: nowrap; padding: 0 20px;" onclick="handleManualSubmit()">
+            Cek
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer: Versi & Copyright -->
+    <footer class="footer">
+      <div class="footer-meta">
+        <div><span class="version-badge">V1.3 Beta</span></div>
+        <div>© 2027 Panitia MISBAR • Paroki St. Gabriel Bandung</div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Modal Hasil Check-In -->
+  <div id="result-overlay" class="overlay">
+    <div id="result-box" class="result-box result-success">
+      <div id="result-title" class="result-title">VALID — SILAKAN MASUK</div>
+      <div id="result-subtitle" class="result-subtitle">Check-In Berhasil!</div>
+      <div id="detail-card" class="detail-card">
+        <div class="detail-row"><span class="detail-label">Nama</span><span class="detail-val" id="res-nama">-</span></div>
+        <div class="detail-row"><span class="detail-label">Paroki</span><span class="detail-val" id="res-paroki">-</span></div>
+        <div class="detail-row"><span class="detail-label">Usia</span><span class="detail-val" id="res-usia">-</span></div>
+        <div class="detail-row"><span class="detail-label">Transport</span><span class="detail-val" id="res-kendaraan">-</span></div>
+        <div class="detail-row"><span class="detail-label">ID Tiket</span><span class="detail-val" id="res-id">-</span></div>
+        <div class="detail-row"><span class="detail-label">Waktu Scan</span><span class="detail-val" id="res-waktu">-</span></div>
+      </div>
+      <button class="btn btn-next" onclick="closeResultModal()">Scan Berikutnya</button>
+    </div>
+  </div>
+
+  <script>
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwg3D6Cx0U2oJueYo859jB8AfGsWB4fW3CBQdnfj8p5a09MPzk7BSpU9n6ChXsQK1Qm/exec';
+    const THEME_STORAGE_KEY = 'misbar27_ui_theme';
+
+    const ICON_SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
+    const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>';
+
+    let currentPin = '';
+    let html5QrCode = null;
+    let isCameraRunning = false;
+    let isProcessing = false;
+
+    window.addEventListener('DOMContentLoaded', function () {
+      initTheme();
+
+      const savedPin = sessionStorage.getItem('misbar_gate_pin');
+      if (savedPin) {
+        document.getElementById('pin-input').value = savedPin;
+        handleLogin();
+      }
+      document.getElementById('manual-id').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') handleManualSubmit();
+      });
+      document.getElementById('pin-input').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') handleLogin();
+      });
+    });
+
+    /* Pengaturan Tema Dark / Light Mode */
+    function initTheme() {
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+      applyTheme(savedTheme);
+    }
+
+    function applyTheme(theme) {
+      const normalized = theme === 'light' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', normalized);
+      localStorage.setItem(THEME_STORAGE_KEY, normalized);
+
+      const toggleBtn = document.getElementById('btn-theme-toggle');
+      if (normalized === 'dark') {
+        toggleBtn.innerHTML = ICON_SUN;
+        toggleBtn.title = 'Ubah ke Light Mode';
+        toggleBtn.setAttribute('aria-label', 'Ubah ke Light Mode');
+      } else {
+        toggleBtn.innerHTML = ICON_MOON;
+        toggleBtn.title = 'Ubah ke Dark Mode';
+        toggleBtn.setAttribute('aria-label', 'Ubah ke Dark Mode');
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    /* Koneksi ke Backend Google Apps Script */
+    function callGasApi(payload) {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        return new Promise(function (resolve, reject) {
+          const runner = google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject);
+
+          if (payload.action === 'stats') {
+            runner.getCheckInStats(payload.pin);
+          } else if (payload.action === 'checkin') {
+            runner.processCheckIn(payload.ticketId, payload.pin);
+          } else {
+            reject(new Error('Action tidak dikenali.'));
+          }
+        });
+      }
+
+      const url = new URL(WEB_APP_URL);
+      Object.keys(payload).forEach(function (key) {
+        if (payload[key] !== undefined && payload[key] !== null) {
+          url.searchParams.append(key, String(payload[key]));
+        }
+      });
+
+      return fetch(url.toString(), {
+        method: 'GET',
+        redirect: 'follow'
+      }).then(function (response) {
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status);
+        }
+        return response.json();
+      });
+    }
+
+    async function handleLogin() {
+      const pinInput = document.getElementById('pin-input');
+      const btnLogin = document.getElementById('btn-login');
+      const errEl = document.getElementById('login-error');
+      const pin = pinInput.value.trim();
+
+      if (!pin) {
+        errEl.style.color = '#ef4444';
+        errEl.textContent = 'PIN wajib diisi.';
+        return;
+      }
+
+      btnLogin.disabled = true;
+      errEl.style.color = 'var(--text-secondary)';
+      errEl.textContent = 'Menghubungkan ke server...';
+
+      try {
+        const res = await callGasApi({ action: 'stats', pin: pin });
+        if (!res || !res.ok) {
+          errEl.style.color = '#ef4444';
+          errEl.textContent = (res && res.message) ? res.message : 'PIN Panitia salah.';
+          sessionStorage.removeItem('misbar_gate_pin');
+          btnLogin.disabled = false;
+          return;
+        }
+
+        currentPin = pin;
+        sessionStorage.setItem('misbar_gate_pin', pin);
+        errEl.textContent = '';
+        btnLogin.disabled = false;
+        updateStatsUI(res.stats);
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('scanner-section').classList.remove('hidden');
+        document.getElementById('btn-settings').classList.remove('hidden');
+        startCamera();
+      } catch (err) {
+        errEl.style.color = '#ef4444';
+        errEl.textContent = 'Gagal terhubung ke server (' + err.message + '). Pastikan akses Web App disetel ke "Anyone".';
+        btnLogin.disabled = false;
+      }
+    }
+
+    function handleLogout() {
+      stopCamera();
+      sessionStorage.removeItem('misbar_gate_pin');
+      currentPin = '';
+      document.getElementById('pin-input').value = '';
+      document.getElementById('login-error').textContent = '';
+      document.getElementById('scanner-section').classList.add('hidden');
+      document.getElementById('btn-settings').classList.add('hidden');
+      document.getElementById('login-section').classList.remove('hidden');
+    }
+
+    async function refreshStats(showFeedback) {
+      const pill = document.getElementById('refresh-hint');
+      if (showFeedback && pill) {
+        pill.innerHTML = '<span class="live-dot"></span>Loading...';
+      }
+      try {
+        const res = await callGasApi({ action: 'stats', pin: currentPin });
+        if (res && res.ok) updateStatsUI(res.stats);
+      } catch (e) {} finally {
+        if (showFeedback && pill) {
+          setTimeout(function () {
+            pill.innerHTML = '<span class="live-dot"></span>Online';
+          }, 400);
+        }
+      }
+    }
+
+    function updateStatsUI(stats) {
+      if (!stats) return;
+      const total = Number(stats.total || 0);
+      const checkedIn = Number(stats.checkedIn || 0);
+      const remaining = (stats.remaining !== undefined)
+        ? Number(stats.remaining)
+        : Math.max(0, total - checkedIn);
+
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-checked-in').textContent = checkedIn;
+      document.getElementById('stat-remaining').textContent = remaining;
+    }
+
+    function startCamera() {
+      if (isCameraRunning) return;
+      if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode('reader');
+      } else {
+        try { html5QrCode.clear(); } catch (e) {}
+      }
+
+      const statusEl = document.getElementById('cam-status');
+      const btnToggle = document.getElementById('btn-toggle-cam');
+      statusEl.textContent = 'Mengaktifkan kamera...';
+
+      html5QrCode.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 230, height: 230 } },
+        function onScanSuccess(decodedText) {
+          if (isProcessing) return;
+          submitTicket(decodedText);
+        },
+        function onScanFailure() {}
+      ).then(function () {
+        isCameraRunning = true;
+        btnToggle.textContent = 'Matikan Kamera';
+        statusEl.textContent = 'Kamera aktif. Arahkan ke QR Code peserta.';
+      }).catch(function () {
+        isCameraRunning = false;
+        btnToggle.textContent = 'Nyalakan Kamera';
+        statusEl.textContent = 'Kamera tidak terbuka otomatis. Gunakan tombol "Pilih dari Galeri" atau input manual.';
+      });
+    }
+
+    function stopCamera() {
+      if (!html5QrCode || !isCameraRunning) return Promise.resolve();
+      return html5QrCode.stop().then(function () {
+        isCameraRunning = false;
+        document.getElementById('btn-toggle-cam').textContent = 'Nyalakan Kamera';
+        document.getElementById('cam-status').textContent = 'Kamera dimatikan.';
+      }).catch(function () {
+        isCameraRunning = false;
+      });
+    }
+
+    function toggleCamera() {
+      if (isCameraRunning) {
+        stopCamera();
+      } else {
+        startCamera();
+      }
+    }
+
+    function handleFileScan(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode('reader');
+      }
+      const statusEl = document.getElementById('cam-status');
+      statusEl.textContent = 'Membaca QR dari galeri...';
+
+      stopCamera().then(function () {
+        return html5QrCode.scanFile(file, true);
+      }).then(function (decodedText) {
+        event.target.value = '';
+        submitTicket(decodedText);
+      }).catch(function () {
+        event.target.value = '';
+        statusEl.textContent = 'QR Code tidak terdeteksi pada gambar tersebut.';
+      });
+    }
+
+    function handleManualSubmit() {
+      const input = document.getElementById('manual-id');
+      const code = input.value.trim();
+      if (!code) return;
+      submitTicket(code);
+    }
+
+    async function submitTicket(ticketId) {
+      if (isProcessing) return;
+      isProcessing = true;
+
+      if (isCameraRunning && html5QrCode) {
+        try { html5QrCode.pause(true); } catch (e) {}
+      }
+
+      document.getElementById('cam-status').textContent = 'Memeriksa tiket ' + ticketId + '...';
+
+      try {
+        const res = await callGasApi({
+          action: 'checkin',
+          ticketId: ticketId,
+          pin: currentPin
+        });
+        document.getElementById('manual-id').value = '';
+        if (res && res.stats) updateStatsUI(res.stats);
+        showResultModal(res);
+      } catch (err) {
+        showResultModal({
+          status: 'INVALID',
+          message: 'Koneksi gagal: ' + err.message
+        });
+      }
+    }
+
+    function showResultModal(res) {
+      const overlay = document.getElementById('result-overlay');
+      const box = document.getElementById('result-box');
+      const titleEl = document.getElementById('result-title');
+      const subEl = document.getElementById('result-subtitle');
+      const detailCard = document.getElementById('detail-card');
+
+      box.className = 'result-box';
+
+      if (res && res.status === 'SUCCESS') {
+        box.classList.add('result-success');
+        titleEl.textContent = 'VALID — SILAKAN MASUK';
+        subEl.textContent = res.message;
+        playBeep(880, 2);
+      } else if (res && (res.status === 'DUPLICATE' || res.status === 'ALREADY_USED')) {
+        box.classList.add('result-duplicate');
+        titleEl.textContent = 'TIKET SUDAH DIPAKAI';
+        subEl.textContent = res.message;
+        playBeep(330, 2);
+      } else {
+        box.classList.add('result-invalid');
+        titleEl.textContent = 'TIKET TIDAK VALID';
+        subEl.textContent = (res && res.message) ? res.message : 'Data tidak ditemukan.';
+        playBeep(200, 1);
+      }
+
+      if (res && res.participant) {
+        detailCard.classList.remove('hidden');
+        document.getElementById('res-nama').textContent = res.participant.nama || '-';
+        document.getElementById('res-paroki').textContent = res.participant.paroki || '-';
+        document.getElementById('res-usia').textContent = res.participant.usia || '-';
+        document.getElementById('res-kendaraan').textContent = res.participant.kendaraan || res.participant.transport || '-';
+        document.getElementById('res-id').textContent = res.participant.ticketId || '-';
+        document.getElementById('res-waktu').textContent = res.participant.checkinTime || res.checkinTime || '-';
+      } else {
+        detailCard.classList.add('hidden');
+      }
+
+      overlay.classList.add('active');
+    }
+
+    function closeResultModal() {
+      document.getElementById('result-overlay').classList.remove('active');
+      isProcessing = false;
+      document.getElementById('cam-status').textContent = 'Siap memindai peserta berikutnya...';
+
+      if (isCameraRunning && html5QrCode) {
+        try { html5QrCode.resume(); } catch (e) {}
+      }
+    }
+
+    function playBeep(freq, count) {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioCtx();
+        for (let i = 0; i < count; i++) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.value = 0.25;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          const startTime = ctx.currentTime + i * 0.16;
+          osc.start(startTime);
+          osc.stop(startTime + 0.11);
+        }
+      } catch (e) {}
+    }
+  </script>
+</body>
+</html>
