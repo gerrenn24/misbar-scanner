@@ -254,6 +254,12 @@
       height: 6px;
       border-radius: 50%;
       background: currentColor;
+      animation: pulseDot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
     }
 
     .field-label {
@@ -535,8 +541,8 @@
 
     <!-- Layar Utama Scanner -->
     <div id="scanner-section" class="hidden">
-      <!-- 3 Kotak Statistik (Ketuk untuk refresh) -->
-      <div class="stats-grid" onclick="refreshStats(true)" title="Ketuk untuk memperbarui statistik">
+      <!-- 3 Kotak Statistik (Auto-refresh tiap 5 detik + bisa diketuk manual) -->
+      <div class="stats-grid" onclick="refreshStats(true)" title="Auto-refresh aktif (ketuk untuk paksa muat ulang)">
         <div class="stat-box">
           <div class="stat-num" id="stat-total" style="color: var(--stat-total);">0</div>
           <div class="stat-lbl">Pendaftar</div>
@@ -555,7 +561,7 @@
       <div class="card">
         <div class="section-header">
           <span class="section-label">Pemindai QR Tiket</span>
-          <span id="refresh-hint" class="live-pill"><span class="live-dot"></span>Online</span>
+          <span id="refresh-hint" class="live-pill"><span class="live-dot"></span>Live Sync</span>
         </div>
         <div id="reader"></div>
         <div class="camera-controls">
@@ -587,7 +593,7 @@
     <!-- Footer: Versi & Copyright -->
     <footer class="footer">
       <div class="footer-meta">
-        <div><span class="version-badge">V1.3 Beta</span></div>
+        <div><span class="version-badge">V1.4 Beta</span></div>
         <div>© 2027 Panitia MISBAR • Paroki St. Gabriel Bandung</div>
       </div>
     </footer>
@@ -613,6 +619,7 @@
   <script>
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwg3D6Cx0U2oJueYo859jB8AfGsWB4fW3CBQdnfj8p5a09MPzk7BSpU9n6ChXsQK1Qm/exec';
     const THEME_STORAGE_KEY = 'misbar27_ui_theme';
+    const AUTO_REFRESH_INTERVAL_MS = 5000; // Perbarui statistik otomatis tiap 5 detik
 
     const ICON_SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
     const ICON_MOON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>';
@@ -621,6 +628,8 @@
     let html5QrCode = null;
     let isCameraRunning = false;
     let isProcessing = false;
+    let isRefreshingStats = false;
+    let autoRefreshTimer = null;
 
     window.addEventListener('DOMContentLoaded', function () {
       initTheme();
@@ -635,6 +644,13 @@
       });
       document.getElementById('pin-input').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') handleLogin();
+      });
+
+      // Langsung sync saat layar HP/tab kembali dibuka
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && currentPin) {
+          refreshStats(false);
+        }
       });
     });
 
@@ -736,6 +752,8 @@
         document.getElementById('login-section').classList.add('hidden');
         document.getElementById('scanner-section').classList.remove('hidden');
         document.getElementById('btn-settings').classList.remove('hidden');
+
+        startAutoRefresh();
         startCamera();
       } catch (err) {
         errEl.style.color = '#ef4444';
@@ -745,6 +763,7 @@
     }
 
     function handleLogout() {
+      stopAutoRefresh();
       stopCamera();
       sessionStorage.removeItem('misbar_gate_pin');
       currentPin = '';
@@ -755,20 +774,41 @@
       document.getElementById('login-section').classList.remove('hidden');
     }
 
+    /* Auto-Refresh Statistik */
+    function startAutoRefresh() {
+      stopAutoRefresh();
+      autoRefreshTimer = setInterval(function () {
+        if (document.hidden || !currentPin || isProcessing) return;
+        refreshStats(false);
+      }, AUTO_REFRESH_INTERVAL_MS);
+    }
+
+    function stopAutoRefresh() {
+      if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+      }
+    }
+
     async function refreshStats(showFeedback) {
+      if (!currentPin || isRefreshingStats) return;
+      isRefreshingStats = true;
+
       const pill = document.getElementById('refresh-hint');
       if (showFeedback && pill) {
-        pill.innerHTML = '<span class="live-dot"></span>Loading...';
+        pill.innerHTML = '<span class="live-dot"></span>Syncing...';
       }
+
       try {
         const res = await callGasApi({ action: 'stats', pin: currentPin });
-        if (res && res.ok) updateStatsUI(res.stats);
-      } catch (e) {} finally {
-        if (showFeedback && pill) {
-          setTimeout(function () {
-            pill.innerHTML = '<span class="live-dot"></span>Online';
-          }, 400);
+        if (res && res.ok) {
+          updateStatsUI(res.stats);
+          if (pill) pill.innerHTML = '<span class="live-dot"></span>Live Sync';
         }
+      } catch (e) {
+        if (pill) pill.innerHTML = '<span class="live-dot"></span>Offline';
+      } finally {
+        isRefreshingStats = false;
       }
     }
 
