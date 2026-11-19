@@ -178,7 +178,7 @@
     .btn-drive.disabled::after { display: none; }
     .drive-subtext { font-size: 11.5px; color: var(--text-muted); margin-top: 9px; word-break: break-all; }
 
-    /* Carousel */
+    /* Carousel Berjejer, Gapless & Sudut Lancip */
     .carousel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .section-title-wrap { display: flex; align-items: center; gap: 8px; }
     .section-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--grad-cta); }
@@ -188,36 +188,86 @@
       background: var(--grad-pill); color: var(--pill-text); border: 1px solid var(--border-accent); font-variant-numeric: tabular-nums;
     }
     .carousel-viewport {
-      position: relative; width: 100%; overflow: hidden; border-radius: 16px; background: #070514;
-      border: 1px solid var(--border-accent); aspect-ratio: 4 / 3; touch-action: pan-y;
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 0;
+      border: 1px solid var(--border-accent);
     }
-    .carousel-track { display: flex; height: 100%; transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1); }
-    .carousel-slide { min-width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; cursor: zoom-in; }
-    .carousel-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .carousel-track {
+      display: flex;
+      gap: 0;
+      padding-right: 0;
+      width: max-content;
+      will-change: transform;
+    }
+    .carousel-track.is-marquee {
+      animation: marqueeScroll var(--marquee-duration, 21s) linear infinite;
+    }
+    .carousel-track.is-single {
+      width: 100%;
+      padding-right: 0;
+      justify-content: center;
+    }
+    .carousel-viewport:hover .carousel-track.is-marquee,
+    .carousel-viewport.is-paused .carousel-track.is-marquee {
+      animation-play-state: paused;
+    }
+    @keyframes marqueeScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .carousel-slide {
+      flex: 0 0 215px;
+      width: 215px;
+      height: 162px;
+      border-radius: 0;
+      overflow: hidden;
+      background: #070514;
+      border: none;
+      position: relative;
+      cursor: zoom-in;
+    }
+    .carousel-track.is-single .carousel-slide {
+      flex: 1 1 100%;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 4 / 3;
+    }
+    .carousel-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.35s ease;
+    }
+    .carousel-slide:hover img { transform: scale(1.04); }
     .slide-caption {
-      position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 14px 12px 14px;
-      background: linear-gradient(to top, rgba(12, 9, 29, 0.9), transparent);
-      color: #ffffff; font-size: 12.5px; font-weight: 500; line-height: 1.4;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 24px 10px 8px 10px;
+      background: linear-gradient(to top, rgba(12, 9, 29, 0.92), transparent);
+      color: #ffffff;
+      font-size: 11.5px;
+      font-weight: 500;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
-    .nav-btn {
-      position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%;
-      background: rgba(18, 14, 42, 0.74); backdrop-filter: blur(6px); border: 1px solid rgba(255, 255, 255, 0.25);
-      color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5;
-      font-size: 15px; font-weight: 800; transition: transform 0.12s ease;
+    .carousel-hint {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--text-muted);
     }
-    .nav-btn:active { transform: translateY(-50%) scale(0.92); }
-    .nav-btn.prev { left: 10px; }
-    .nav-btn.next { right: 10px; }
-    .carousel-dots { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
-    .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--border-color); border: none; cursor: pointer; transition: width 0.25s ease, background 0.25s ease; }
-    .dot.active { width: 24px; background: var(--grad-cta); }
     .empty-carousel {
       padding: 28px 18px; text-align: center; color: var(--text-muted); font-size: 13.5px; line-height: 1.6;
-      background: var(--bg-subtle); border-radius: 15px; border: 1px dashed var(--border-accent);
+      background: var(--bg-subtle); border-radius: 0; border: 1px dashed var(--border-accent);
     }
-
-    .skeleton { animation: pulse 1.4s infinite ease-in-out; background: var(--bg-subtle); border-radius: 10px; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
     /* Lightbox */
     .lightbox {
@@ -233,6 +283,15 @@
       border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 800; cursor: pointer;
       box-shadow: 0 6px 18px rgba(225, 29, 72, 0.42);
     }
+    .nav-btn {
+      position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(18, 14, 42, 0.74); backdrop-filter: blur(6px); border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #ffffff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 5;
+      font-size: 15px; font-weight: 800; transition: transform 0.12s ease;
+    }
+    .nav-btn:active { transform: translateY(-50%) scale(0.92); }
+    .nav-btn.prev { left: 10px; }
+    .nav-btn.next { right: 10px; }
 
     .footer { margin-top: auto; padding-top: 12px; padding-bottom: 8px; text-align: center; font-size: 11.5px; color: var(--text-muted); line-height: 1.55; }
     .version-badge {
@@ -274,16 +333,7 @@
         <div id="ticket-badge" class="ticket-chip hidden">MISBAR27</div>
       </div>
 
-      <!-- Loading Skeleton -->
-      <div id="loading-view">
-        <div class="skeleton" style="height: 24px; width: 48%; margin-bottom: 12px;"></div>
-        <div class="skeleton" style="height: 16px; width: 100%; margin-bottom: 8px;"></div>
-        <div class="skeleton" style="height: 76px; width: 100%; margin-bottom: 18px;"></div>
-        <div class="skeleton" style="height: 50px; width: 100%;"></div>
-      </div>
-
-      <!-- Konten Utama -->
-      <div id="content-view" class="hidden">
+      <div id="content-view">
         <p class="greeting-line">Halo <strong id="user-name">Teman OMK</strong>,</p>
 
         <div class="message-text">
@@ -309,22 +359,20 @@
     </main>
 
     <!-- Carousel Foto -->
-    <section id="carousel-card" class="card hidden">
+    <section id="carousel-card" class="card">
       <div class="carousel-header">
         <div class="section-title-wrap">
           <span class="section-dot"></span>
           <span class="section-label">Carousel Foto MISBAR</span>
         </div>
-        <span id="slide-counter" class="slide-counter">1 / 1</span>
+        <span id="slide-counter" class="slide-counter">0 Foto</span>
       </div>
 
       <div id="carousel-container">
         <div id="carousel-viewport" class="carousel-viewport">
           <div id="carousel-track" class="carousel-track"></div>
-          <button type="button" class="nav-btn prev" id="btn-prev" onclick="moveSlide(-1)" aria-label="Sebelumnya">❮</button>
-          <button type="button" class="nav-btn next" id="btn-next" onclick="moveSlide(1)" aria-label="Berikutnya">❯</button>
         </div>
-        <div id="carousel-dots" class="carousel-dots"></div>
+        <div class="carousel-hint">Tap foto untuk memperbesar</div>
       </div>
 
       <div id="empty-carousel" class="empty-carousel hidden">
@@ -333,7 +381,7 @@
     </section>
 
     <footer class="footer">
-      <div><span class="version-badge">Wristband V2.4</span></div>
+      <div><span class="version-badge">Wristband V2.7</span></div>
       <div>© 2027 Panitia MISBAR • Paroki St. Gabriel Bandung</div>
     </footer>
   </div>
@@ -350,28 +398,34 @@
   </div>
 
   <script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwg3D6Cx0U2oJueYo859jB8AfGsWB4fW3CBQdnfj8p5a09MPzk7BSpU9n6ChXsQK1Qm/exec';
-    const THEME_STORAGE_KEY = 'misbar27_ui_theme';
+    /* =====================================================================
+       KONFIGURASI KONTEN (Cukup ubah bagian ini saja)
+       ===================================================================== */
+    const GOOGLE_DRIVE_URL = 'https://drive.google.com/drive/folders/1FI9MfkWsG4BKmAOXC6pO8vFnXoi_zM1j?usp=drive_link';
+
+    /* Kecepatan jalan carousel (makin besar angkanya, makin pelan jalannya) */
+    const CAROUSEL_SECONDS_PER_PHOTO = 7;
 
     /* Aset Foto Lokal Carousel (folder assets/ sejajar dengan wristband.html) */
     const CAROUSEL_ASSETS = [
-      { url: 'assets/foto-1.jpg', caption: 'Momen kebersamaan Misa Akbar 2027' },
-      { url: 'assets/foto-2.jpg', caption: 'Suasana Misa di Gereja St. Gabriel' },
-      { url: 'assets/foto-3.jpg', caption: 'Foto bersama OMK Paroki St. Gabriel' }
+      { url: 'assets/1.jpg', caption: 'Momen kebersamaan Misa Akbar 2027' },
+      { url: 'assets/2.jpg', caption: 'Suasana Misa di Gereja St. Gabriel' },
+      { url: 'assets/3.jpg', caption: 'Foto bersama OMK Paroki St. Gabriel' }
     ];
+    /* ===================================================================== */
+
+    const THEME_STORAGE_KEY = 'misbar27_ui_theme';
 
     const ICON_SUN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>';
     const ICON_MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>';
 
     let slides = [];
     let currentIndex = 0;
-    let touchStartX = 0;
-    let autoSlideTimer = null;
 
     window.addEventListener('DOMContentLoaded', function () {
       initTheme();
-      loadWristbandContent();
-      setupTouchSwipe();
+      initWristbandPage();
+      setupTouchPause();
     });
 
     function initTheme() {
@@ -397,30 +451,9 @@
       return params.get(name) || '';
     }
 
-    function fetchWristbandApi(id) {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        return new Promise(function (resolve, reject) {
-          google.script.run
-            .withSuccessHandler(resolve)
-            .withFailureHandler(reject)
-            .getWristbandData(id);
-        });
-      }
-
-      const url = new URL(WEB_APP_URL);
-      url.searchParams.append('action', 'wristband');
-      if (id) url.searchParams.append('id', id);
-
-      return fetch(url.toString(), { method: 'GET', redirect: 'follow' })
-        .then(function (response) {
-          if (!response.ok) throw new Error('HTTP ' + response.status);
-          return response.json();
-        });
-    }
-
-    async function loadWristbandContent() {
+    function initWristbandPage() {
       const id = getQueryParam('id') || getQueryParam('ticket') || getQueryParam('kode') || getQueryParam('code');
-      const fallbackName = getQueryParam('nama') || getQueryParam('name');
+      const nama = getQueryParam('nama') || getQueryParam('name') || 'Teman OMK';
 
       if (id) {
         const badge = document.getElementById('ticket-badge');
@@ -428,43 +461,18 @@
         badge.classList.remove('hidden');
       }
 
-      try {
-        const data = await fetchWristbandApi(id);
-        const fetchedName = data && (data.nama || data.name || data.peserta);
-        const displayName = (data && data.found && fetchedName)
-          ? fetchedName
-          : (fallbackName || fetchedName || 'Teman OMK');
-
-        renderPage({
-          nama: displayName,
-          driveLink: (data && data.driveLink) ? data.driveLink : '',
-          photos: (data && Array.isArray(data.photos)) ? data.photos : []
-        });
-      } catch (err) {
-        renderPage({
-          nama: fallbackName || 'Teman OMK',
-          driveLink: '',
-          photos: []
-        });
-      }
-    }
-
-    function renderPage(info) {
-      document.getElementById('loading-view').classList.add('hidden');
-      document.getElementById('content-view').classList.remove('hidden');
-      document.getElementById('carousel-card').classList.remove('hidden');
-
-      document.getElementById('user-name').textContent = info.nama;
+      document.getElementById('user-name').textContent = nama;
 
       const driveBtn = document.getElementById('drive-btn');
       const driveLabel = document.getElementById('drive-btn-label');
       const driveSub = document.getElementById('drive-url-preview');
+      const cleanDriveUrl = (GOOGLE_DRIVE_URL || '').trim();
 
-      if (info.driveLink && info.driveLink.indexOf('GANTI_DENGAN_ID_FOLDER') === -1) {
-        driveBtn.href = info.driveLink;
+      if (cleanDriveUrl && cleanDriveUrl.indexOf('GANTI_DENGAN_ID_FOLDER_ASLI') === -1) {
+        driveBtn.href = cleanDriveUrl;
         driveBtn.classList.remove('disabled');
         driveLabel.textContent = 'Buka Link Google Drive Foto';
-        driveSub.textContent = info.driveLink;
+        driveSub.textContent = cleanDriveUrl;
       } else {
         driveBtn.removeAttribute('href');
         driveBtn.classList.add('disabled');
@@ -472,23 +480,45 @@
         driveSub.textContent = 'Link foto akan aktif setelah tim dokumentasi mengunggah foto acara.';
       }
 
-      const localAssets = Array.isArray(CAROUSEL_ASSETS)
+      slides = Array.isArray(CAROUSEL_ASSETS)
         ? CAROUSEL_ASSETS.filter(function (item) { return item && item.url; })
         : [];
-      slides = localAssets.length > 0 ? localAssets : info.photos;
 
       renderCarousel();
       launchConfetti();
+    }
+
+    function createSlideElement(item, originalIndex, isClone) {
+      const slide = document.createElement('div');
+      slide.className = 'carousel-slide';
+      if (isClone) slide.setAttribute('aria-hidden', 'true');
+      slide.onclick = function () { openLightbox(originalIndex); };
+
+      const img = document.createElement('img');
+      img.src = item.url;
+      img.alt = item.caption || ('Foto MISBAR ' + (originalIndex + 1));
+      img.loading = 'eager';
+      img.onerror = function () {
+        slides = slides.filter(function (s) { return s.url !== item.url; });
+        renderCarousel();
+      };
+      slide.appendChild(img);
+
+      if (item.caption) {
+        const cap = document.createElement('div');
+        cap.className = 'slide-caption';
+        cap.textContent = item.caption;
+        slide.appendChild(cap);
+      }
+
+      return slide;
     }
 
     function renderCarousel() {
       const container = document.getElementById('carousel-container');
       const emptyEl = document.getElementById('empty-carousel');
       const track = document.getElementById('carousel-track');
-      const dotsEl = document.getElementById('carousel-dots');
       const counterEl = document.getElementById('slide-counter');
-
-      stopAutoSlide();
 
       if (!slides || slides.length === 0) {
         container.classList.add('hidden');
@@ -500,92 +530,49 @@
       container.classList.remove('hidden');
       emptyEl.classList.add('hidden');
       track.innerHTML = '';
-      dotsEl.innerHTML = '';
+      counterEl.textContent = slides.length + ' Foto';
+
+      document.getElementById('lb-prev').classList.toggle('hidden', slides.length <= 1);
+      document.getElementById('lb-next').classList.toggle('hidden', slides.length <= 1);
+
+      if (slides.length === 1) {
+        track.className = 'carousel-track is-single';
+        track.appendChild(createSlideElement(slides[0], 0, false));
+        return;
+      }
+
+      track.className = 'carousel-track is-marquee';
+      const durationSec = Math.max(8, slides.length * CAROUSEL_SECONDS_PER_PHOTO);
+      track.style.setProperty('--marquee-duration', durationSec + 's');
 
       slides.forEach(function (item, idx) {
-        const slide = document.createElement('div');
-        slide.className = 'carousel-slide';
-        slide.onclick = function () { openLightbox(idx); };
-
-        const img = document.createElement('img');
-        img.src = item.url;
-        img.alt = item.caption || ('Foto MISBAR ' + (idx + 1));
-        img.loading = idx === 0 ? 'eager' : 'lazy';
-        img.onerror = function () {
-          slides = slides.filter(function (s) { return s.url !== item.url; });
-          renderCarousel();
-        };
-        slide.appendChild(img);
-
-        if (item.caption) {
-          const cap = document.createElement('div');
-          cap.className = 'slide-caption';
-          cap.textContent = item.caption;
-          slide.appendChild(cap);
-        }
-
-        track.appendChild(slide);
-
-        const dot = document.createElement('button');
-        dot.type = 'button';
-        dot.className = 'dot' + (idx === 0 ? ' active' : '');
-        dot.setAttribute('aria-label', 'Foto ' + (idx + 1));
-        dot.onclick = function () { goToSlide(idx); restartAutoSlide(); };
-        dotsEl.appendChild(dot);
+        track.appendChild(createSlideElement(item, idx, false));
       });
-
-      const showNav = slides.length > 1;
-      document.getElementById('btn-prev').classList.toggle('hidden', !showNav);
-      document.getElementById('btn-next').classList.toggle('hidden', !showNav);
-      document.getElementById('lb-prev').classList.toggle('hidden', !showNav);
-      document.getElementById('lb-next').classList.toggle('hidden', !showNav);
-
-      goToSlide(0);
-      if (showNav) startAutoSlide();
-    }
-
-    function goToSlide(index) {
-      if (!slides.length) return;
-      currentIndex = (index + slides.length) % slides.length;
-      document.getElementById('carousel-track').style.transform = 'translateX(-' + (currentIndex * 100) + '%)';
-      document.getElementById('slide-counter').textContent = (currentIndex + 1) + ' / ' + slides.length;
-      document.querySelectorAll('#carousel-dots .dot').forEach(function (d, i) {
-        d.classList.toggle('active', i === currentIndex);
+      slides.forEach(function (item, idx) {
+        track.appendChild(createSlideElement(item, idx, true));
       });
     }
 
-    function moveSlide(step) { goToSlide(currentIndex + step); restartAutoSlide(); }
-
-    function startAutoSlide() {
-      stopAutoSlide();
-      autoSlideTimer = setInterval(function () {
-        if (!document.hidden && !document.getElementById('lightbox').classList.contains('active')) {
-          goToSlide(currentIndex + 1);
-        }
-      }, 4500);
-    }
-
-    function stopAutoSlide() { if (autoSlideTimer) { clearInterval(autoSlideTimer); autoSlideTimer = null; } }
-    function restartAutoSlide() { if (slides.length > 1) startAutoSlide(); }
-
-    function setupTouchSwipe() {
+    function setupTouchPause() {
       const viewport = document.getElementById('carousel-viewport');
-      viewport.addEventListener('touchstart', function (e) { touchStartX = e.changedTouches[0].screenX; stopAutoSlide(); }, { passive: true });
-      viewport.addEventListener('touchend', function (e) {
-        const diff = e.changedTouches[0].screenX - touchStartX;
-        if (Math.abs(diff) > 40) moveSlide(diff < 0 ? 1 : -1);
-        else restartAutoSlide();
+      viewport.addEventListener('touchstart', function () {
+        viewport.classList.add('is-paused');
+      }, { passive: true });
+      viewport.addEventListener('touchend', function () {
+        setTimeout(function () {
+          viewport.classList.remove('is-paused');
+        }, 400);
       }, { passive: true });
     }
 
     function openLightbox(index) {
+      if (!slides.length) return;
       currentIndex = (index + slides.length) % slides.length;
       const item = slides[currentIndex];
       if (!item) return;
       document.getElementById('lightbox-img').src = item.url;
       document.getElementById('lightbox-caption').textContent = item.caption || '';
       document.getElementById('lightbox').classList.add('active');
-      goToSlide(currentIndex);
     }
 
     function moveLightbox(step) { openLightbox(currentIndex + step); }
